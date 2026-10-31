@@ -1,8 +1,10 @@
-# Sao chép code ATmega328P (src/uno + include/protocol.h) sang sketch Arduino IDE (arduino/uno/).
-# PlatformIO tự chạy script này trước mỗi lần build env uno (extra_scripts trong platformio.ini),
+# Sao chép code PlatformIO sang sketch Arduino IDE:
+#   src/uno + include/protocol.h -> arduino/uno/      (ATmega328P)
+#   src/esp + include/protocol.h -> arduino/esp8266/  (ESP8266)
+# PlatformIO tự chạy script này trước mỗi lần build (extra_scripts trong platformio.ini),
 # nên sketch Arduino IDE luôn trùng với code PlatformIO. Chạy tay: python tools/sync_arduino.py
 #
-# Nguồn gốc là src/uno: sửa code ở đó, đừng sửa trực tiếp trong arduino/uno (sẽ bị ghi đè).
+# Nguồn gốc là src/: sửa code ở đó, đừng sửa trực tiếp trong arduino/ (sẽ bị ghi đè).
 import os
 import shutil
 
@@ -12,23 +14,30 @@ try:
 except NameError:
     ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-SRC = os.path.join(ROOT, "src", "uno")
-DST = os.path.join(ROOT, "arduino", "uno")
-# main.cpp đổi tên để không trùng main.cpp của lõi Arduino
-RENAME = {"main.cpp": "uno_main.cpp"}
+# (thư mục nguồn trong src/, thư mục sketch trong arduino/); main.cpp được đổi tên
+# thành <sketch>_main.cpp để không trùng main.cpp của lõi Arduino
+TARGETS = [("uno", "uno"), ("esp", "esp8266")]
 
-files = [(os.path.join(SRC, f), RENAME.get(f, f)) for f in sorted(os.listdir(SRC))
-         if f.endswith((".cpp", ".h"))]
-files.append((os.path.join(ROOT, "include", "protocol.h"), "protocol.h"))
 
-os.makedirs(DST, exist_ok=True)
-for src, name in files:
-    dst = os.path.join(DST, name)
-    with open(src, "rb") as f:
-        data = f.read()
-    if os.path.exists(dst):
-        with open(dst, "rb") as f:
-            if f.read() == data:
-                continue
-    shutil.copyfile(src, dst)
-    print("sync_arduino: updated arduino/uno/" + name)
+def sync(src_name, sketch):
+    src_dir = os.path.join(ROOT, "src", src_name)
+    dst_dir = os.path.join(ROOT, "arduino", sketch)
+    files = [(os.path.join(src_dir, f), sketch + "_main.cpp" if f == "main.cpp" else f)
+             for f in sorted(os.listdir(src_dir)) if f.endswith((".cpp", ".h"))]
+    files.append((os.path.join(ROOT, "include", "protocol.h"), "protocol.h"))
+
+    os.makedirs(dst_dir, exist_ok=True)
+    for src, name in files:
+        dst = os.path.join(dst_dir, name)
+        with open(src, "rb") as f:
+            data = f.read()
+        if os.path.exists(dst):
+            with open(dst, "rb") as f:
+                if f.read() == data:
+                    continue
+        shutil.copyfile(src, dst)
+        print("sync_arduino: updated arduino/%s/%s" % (sketch, name))
+
+
+for src_name, sketch in TARGETS:
+    sync(src_name, sketch)

@@ -138,7 +138,7 @@ Bo có dãy DIP 8 công tắc chọn ai nói chuyện với ai. **Rút nguồn 1
 3. Tools > Board: **Arduino Uno**, chọn cổng COM, gạt DIP 3, 4 = ON rồi bấm **Upload**.
 
 Code trong `arduino/uno/` là bản sao của `src/uno/` + `include/protocol.h`, được
-`tools/sync_arduino.py` tự cập nhật mỗi lần build `env:uno` bằng PlatformIO
+`tools/sync_arduino.py` tự cập nhật mỗi lần build bằng PlatformIO
 (hoặc chạy tay `python tools/sync_arduino.py`). Sửa code trong `src/uno/`, không sửa trong `arduino/uno/`.
 
 ### 4. Nạp ESP8266
@@ -153,6 +153,16 @@ Code trong `arduino/uno/` là bản sao của `src/uno/` + `include/protocol.h`,
 
 Nếu báo `Failed to connect to ESP8266`: kiểm tra lại DIP 7, nhấn RESET ngay trước khi lệnh bắt đầu
 kết nối, thử cắm cổng USB khác.
+
+**Hoặc nạp bằng Arduino IDE** (không cần PlatformIO):
+
+1. Mở `arduino/esp8266/esp8266.ino` bằng Arduino IDE.
+2. Boards Manager: cài **esp8266** (ESP8266 Community). Library Manager: cài **WebSockets** của Markus Sattler (bản 2.4.x).
+3. Tools > Board: **Generic ESP8266 Module**, chỉnh Flash Size **1MB (FS:64KB OTA:~470KB)**,
+   Flash Mode **DIO**, Upload Speed **115200**.
+4. Gạt DIP 5, 6, 7 = ON, nhấn RESET, chọn cổng COM rồi bấm **Upload**. Nạp xong gạt DIP 7 về OFF.
+
+Code trong `arduino/esp8266/` là bản sao của `src/esp/` + `include/protocol.h`, cập nhật tự động như bản Uno.
 
 ### 5. Chạy thật
 
@@ -203,5 +213,6 @@ src/uno/drive.cpp      2 × BTS7960 (PWM ở RPWM/LPWM), bù vùng chết, ướ
 src/esp/main.cpp       WiFi AP, HTTP, WebSocket, cầu nối UART, watchdog trình duyệt 500 ms
 src/esp/web_page.h     Giao diện remote + hiển thị trên điện thoại
 arduino/uno/           Sketch Arduino IDE cho ATmega328P (sao chép tự động từ src/uno)
-tools/sync_arduino.py  Script sao chép src/uno -> arduino/uno, chạy trước mỗi lần build env:uno
+arduino/esp8266/       Sketch Arduino IDE cho ESP8266 (sao chép tự động từ src/esp)
+tools/sync_arduino.py  Script sao chép src/ -> arduino/, chạy trước mỗi lần build PlatformIO
 ```
