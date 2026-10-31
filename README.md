@@ -131,6 +131,16 @@ Bo có dãy DIP 8 công tắc chọn ai nói chuyện với ai. **Rút nguồn 1
    (Trong VS Code: thanh dưới cùng chọn môi trường `env:uno`, bấm nút mũi tên **Upload**.)
 3. Nếu PlatformIO không tự tìm đúng cổng: thêm `--upload-port COM5` (thay số cổng thực tế).
 
+**Hoặc nạp bằng Arduino IDE** (không cần PlatformIO):
+
+1. Mở `arduino/uno/uno.ino` bằng Arduino IDE.
+2. Library Manager: cài **VL53L0X** của Pololu (bản 1.3.x).
+3. Tools > Board: **Arduino Uno**, chọn cổng COM, gạt DIP 3, 4 = ON rồi bấm **Upload**.
+
+Code trong `arduino/uno/` là bản sao của `src/uno/` + `include/protocol.h`, được
+`tools/sync_arduino.py` tự cập nhật mỗi lần build `env:uno` bằng PlatformIO
+(hoặc chạy tay `python tools/sync_arduino.py`). Sửa code trong `src/uno/`, không sửa trong `arduino/uno/`.
+
 ### 4. Nạp ESP8266
 
 1. Gạt DIP 5, 6, 7 = ON, còn lại OFF (DIP 7 kéo GPIO0 xuống GND để ESP8266 vào chế độ nạp).
@@ -192,4 +202,6 @@ src/uno/avoid.cpp      Thuật toán tránh vật cản 3 sector (máy trạng t
 src/uno/drive.cpp      2 × BTS7960 (PWM ở RPWM/LPWM), bù vùng chết, ước lượng tốc độ, hãm
 src/esp/main.cpp       WiFi AP, HTTP, WebSocket, cầu nối UART, watchdog trình duyệt 500 ms
 src/esp/web_page.h     Giao diện remote + hiển thị trên điện thoại
+arduino/uno/           Sketch Arduino IDE cho ATmega328P (sao chép tự động từ src/uno)
+tools/sync_arduino.py  Script sao chép src/uno -> arduino/uno, chạy trước mỗi lần build env:uno
 ```
