@@ -55,7 +55,8 @@ struct __attribute__((packed)) Telem {
   uint16_t vbat_mV;
   uint8_t batPct;
   int16_t speed_mmps;   // có dấu, dương = tiến
-  int8_t pwmL, pwmR;    // % thực xuất ra driver
+  int8_t pwmDrive;      // % thực xuất ra driver kéo (bánh sau), có dấu
+  int8_t steer;         // góc lái ước lượng -100..100 %, dương = phải
 };
 
 static_assert(sizeof(Cmd) <= MAX_PAYLOAD, "Cmd quá lớn");

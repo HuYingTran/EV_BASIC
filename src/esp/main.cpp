@@ -95,9 +95,9 @@ void pushTelem(uint32_t now) {
   char json[200];
   const int n = snprintf(json, sizeof json,
                          "{\"m\":%u,\"f\":%u,\"l\":%u,\"c\":%u,\"r\":%u,\"v\":%u,\"p\":%u,"
-                         "\"s\":%d,\"pl\":%d,\"pr\":%d,\"u\":%d,\"ctl\":%d}",
+                         "\"s\":%d,\"pd\":%d,\"sa\":%d,\"u\":%d,\"ctl\":%d}",
                          telem.mode, telem.flags, telem.dLeft, telem.dCenter, telem.dRight,
-                         telem.vbat_mV, telem.batPct, telem.speed_mmps, telem.pwmL, telem.pwmR,
+                         telem.vbat_mV, telem.batPct, telem.speed_mmps, telem.pwmDrive, telem.steer,
                          now - lastTelemMs < UNO_TIMEOUT_MS ? 1 : 0,
                          controller == NO_CLIENT ? -1 : controller);
   ws.broadcastTXT(json, n);

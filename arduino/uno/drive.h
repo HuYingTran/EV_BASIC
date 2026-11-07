@@ -2,8 +2,10 @@
 #include <stdint.h>
 
 void driveBegin();
-// left/right: -100..100 %. brake = true thì hãm ngay (IN = 0, EN = 1: hãm động năng).
-// Gọi mỗi CONTROL_MS.
-void driveUpdate(int16_t left, int16_t right, bool brake);
-int16_t driveSpeedMmps();          // tốc độ ước lượng, trung bình hai bên, có dấu
-int8_t drivePwmPct(uint8_t side);  // 0 = trái, 1 = phải
+// v: -100..100 % (dương = tiến), steer: -100..100 % góc lái (dương = phải, ±100 = hết cỡ).
+// brake = true thì hãm động cơ kéo ngay và dừng động cơ lái tại chỗ. Gọi mỗi CONTROL_MS.
+void driveUpdate(int16_t v, int16_t steer, bool brake);
+int16_t driveSpeedMmps();  // tốc độ ước lượng, có dấu
+int8_t drivePwmPct();      // % thực xuất ra driver kéo
+int8_t steerPct();         // góc lái ước lượng, -100..100
+bool steerReady();         // góc ước lượng đã tới góc lệnh và đã hiệu chuẩn xong

@@ -27,6 +27,8 @@ button.on{background:var(--acc)}
 #es.on{background:var(--bad);outline:3px solid #fff}
 #pad{position:relative;width:240px;height:240px;margin:4px auto;border-radius:50%;background:var(--card);border:2px solid var(--line);touch-action:none}
 #knob{position:absolute;width:80px;height:80px;border-radius:50%;background:var(--acc);left:78px;top:78px}
+#knob.auto{background:var(--ok);transition:left .2s linear,top .2s linear}
+#dir{text-align:center;font-weight:600;min-height:20px}
 input[type=range]{width:100%}
 </style></head><body><main>
 <div class="row">
@@ -46,6 +48,7 @@ input[type=range]{width:100%}
  <button id="stop" onclick="setMode(0)">DỪNG</button>
 </div>
 <div id="pad"><div id="knob"></div></div>
+<div id="dir"></div>
 <div class="card"><span class="lbl">Tốc độ tối đa: <b id="vmv">60</b> %</span>
  <input id="vm" type="range" min="10" max="100" value="60"></div>
 <button id="es">DỪNG KHẨN CẤP</button>
@@ -65,7 +68,7 @@ function connect(){
 connect();
 setInterval(()=>{
  if(ws.readyState===1)ws.send(`C,${mode},${thr},${st},${vmax},${es}`);
- if(Date.now()-last>1000){$('lk').textContent='Mất WiFi';$('warn').textContent='Mất kết nối với xe';$('warn').style.background='var(--warn)'}
+ if(Date.now()-last>1000){$('lk').textContent='Mất WiFi';$('warn').textContent='Mất kết nối với xe';$('warn').style.background='var(--warn)';follow(null)}
 },100);
 function setMode(m){mode=m;if(m===0){es=0;$('es').classList.remove('on')}paint()}
 function paint(){$('b1').classList.toggle('on',mode===1);$('b2').classList.toggle('on',mode===2)}
@@ -85,8 +88,34 @@ function show(t){
  const w=t.u?WARN.find(x=>t.f&x[0]):[0,'Không nhận được dữ liệu từ ATmega','bad'];
  const el=$('warn');el.textContent=w?w[1]:'Bình thường';
  el.style.background=w?(w[2]==='bad'?'var(--bad)':'var(--warn)'):'var(--card)';
+ follow(t);
 }
 const pad=$('pad'),knob=$('knob');let act=false;
+// Tự hành: núm chỉ HIỂN THỊ chuyển động thực của xe, không đổi thr/st nên không tạo lệnh ghi đè.
+// pd là PWM bánh sau đã bù vùng chết; trừ PWM_MIN_PCT (config.h) để lấy lại lệnh %, rồi phóng đại
+// vì tự hành chỉ chạy tối đa 36 %. sa là góc lái ước lượng (±100 = hết cỡ) -> trục ngang của núm.
+const PWM_MIN=39,GAIN=2.5;
+const cmdOf=p=>p?Math.sign(p)*Math.max(0,Math.abs(p)-PWM_MIN)/(1-PWM_MIN/100):0;
+function moveLabel(V,S){
+ const lai=Math.abs(S)<=10?'bánh thẳng':(Math.abs(S)>=90?'lái hết cỡ ':'lái ')+(S>0?'phải':'trái');
+ if(!V)return 'Đang đứng yên, '+lai;
+ return (V<0?'Đang lùi, ':'Đang tiến, ')+lai;
+}
+function follow(t){
+ if(act)return;
+ const auto=!!t&&!!t.u&&t.m===2;
+ let x=0,y=0,txt='';
+ if(auto){
+  const V=cmdOf(t.pd),S=t.sa,m=80;
+  x=S/100*m;y=-V*GAIN/100*m;
+  const d=Math.hypot(x,y);
+  if(d>m){x*=m/d;y*=m/d}
+  txt=moveLabel(V,S);
+ }
+ knob.classList.toggle('auto',auto);
+ knob.style.left=(78+x)+'px';knob.style.top=(78+y)+'px';
+ $('dir').textContent=txt;
+}
 function mv(e){
  const r=pad.getBoundingClientRect(),R=r.width/2,m=R-40;
  let x=e.clientX-r.left-R,y=e.clientY-r.top-R;const d=Math.hypot(x,y);
@@ -94,7 +123,7 @@ function mv(e){
  knob.style.left=(x+R-40-2)+'px';knob.style.top=(y+R-40-2)+'px';
  st=Math.round(x/m*100);thr=Math.round(-y/m*100);
 }
-pad.onpointerdown=e=>{act=true;pad.setPointerCapture(e.pointerId);mv(e)};
+pad.onpointerdown=e=>{act=true;knob.classList.remove('auto');$('dir').textContent='';pad.setPointerCapture(e.pointerId);mv(e)};
 pad.onpointermove=e=>{if(act)mv(e)};
 pad.onpointerup=pad.onpointercancel=()=>{act=false;thr=st=0;knob.style.left=knob.style.top='78px'};
 </script></body></html>)HTML";
